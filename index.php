@@ -1,6 +1,6 @@
 <?php 
+$base_path = __DIR__."/";
 try {
-    $base_path = __DIR__."/";
     require $base_path."config.php";
 } catch (\Throwable $th) {
     echo "<pre>";

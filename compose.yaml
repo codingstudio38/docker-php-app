@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  img:
+    image: php-app:v1
+    build:
+      context: .
+      dockerfile: dockerfile
+
+    volumes:
+      - .:/var/www/html/php-app
+
+    working_dir: /var/www/html/php-app
+    container_name: my-php-app 
+    ports:
+      - "80:80"
+  db:
+    image: mysql
+
+    volumes:
+      - ./db_data:/var/lib/mysql
+
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: docker_database
+
+    ports:
+      - "3306:3306"
