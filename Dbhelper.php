@@ -132,7 +132,7 @@ class Dbhelper {
 
 
 
-protected function tableExists(string $table){
+private function tableExists(string $table){
   try {
         $db_name=$this->dbconfig->DB_NAME;
         $sql = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = :db AND table_name = :table";
