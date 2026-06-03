@@ -142,8 +142,8 @@ protected function tableExists(string $table){
             ':table' => $table
         ]);
         return $query->fetchColumn() <= 0 ? false : true;
-  } catch(Exception $error) {
-      echo $error->getMessage();
+  } catch(\Exception $error) {
+    throw new \Exception($error->getMessage());
   }
 }
 
