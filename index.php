@@ -25,6 +25,8 @@ if($data_res['status']==1){
     echo $th->getMessage();
     echo "</pre>";
 }
+// echo "<pre>";
+// print_r($_SERVER);
 ?>
 
 <!DOCTYPE html>
