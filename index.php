@@ -1,32 +1,44 @@
 <?php 
 $base_path = __DIR__."/";
-$result=[];
+$result=['data'=>[],'html_view'=>'','message'=>''];
 try {
 require $base_path."Dbhelper.php";
 $myclass = new Dbhelper();
-$limit = isset($_GET['limit'])?$_GET['limit']:5;
-$page = isset($_GET['page'])?$_GET['page']:1;
-$column = array("id","name","email_id","phone","password");
-$data_res = $myclass->GetData("user_tbl",$column,array(1),$page,$limit,"`id` DESC");
-if($data_res['status']==1){
-    $data = $data_res['data'];
-    $result['status'] = 1;
-    $result['message'] = "Data found.";
-    $result['data'] = $data;
-    $result['html_view'] = $data_res['html_view'];
-} else {
-    $result['status'] = 0;
-    $result['message'] = "Data not found.";
-    $result['data'] = [];
-    $result['html_view'] = $data_res['html_view'];
-}
-} catch (\Throwable $th) {
+
+    
+
+    try {
+        $limit = isset($_GET['limit'])?(int)$_GET['limit']:5;
+        $page = isset($_GET['page'])?(int)$_GET['page']:1;
+
+        $total_records = $myclass->Count("SELECT count(id) as total FROM `user_tbl`");
+        $total_page = ceil($total_records/$limit);
+        $start = ($page - 1)*$limit;
+        $limit_ = "LIMIT $start,$limit";
+        
+        $records = $myclass->FetchData("SELECT * FROM `user_tbl` ORDER BY id desc $limit_");
+        $req_query_srt_arr= count($_SERVER['argv']) > 0?explode('&', $_SERVER['argv'][0]):[];
+        $req_query_srt_arr = array_values(array_filter($req_query_srt_arr, function($item){
+            return strpos($item, 'page=') !== 0 && strpos($item, 'limit=') !== 0;
+        }));
+        $req_query_srt= count($req_query_srt_arr) > 0 ? implode('&', $req_query_srt_arr) : '';
+     
+        $pagination = $myclass->Pagination($records, $page, $limit, $total_records, $req_query_srt);
+        $result['data'] = isset($pagination['data'])?$pagination['data']:[];
+        $result['html_view'] = isset($pagination['html_view'])?$pagination['html_view']:"";
+        
+    } catch (\Exception $th) {
+        echo "<pre>";
+        echo "<small style='color: red;'>failed to fetch data. Error: ".$th->getMessage()."! </small>";
+        echo "</pre>";
+    }
+
+} catch (\Exception $th) {
     echo "<pre>";
-    echo $th->getMessage();
+    echo "<small style='color: red;'>Error: ".$th->getMessage()."! </small>";
     echo "</pre>";
 }
-// echo "<pre>";
-// print_r($_SERVER);
+
 ?>
 
 <!DOCTYPE html>

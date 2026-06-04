@@ -1,6 +1,6 @@
 <?php 
 $base_path = __DIR__."/";
-require $base_path. "/Dbconnect.php";
+require $base_path."Dbconnect.php";
 class Dbhelper {
     use DB{
         DB::CONNECT as protected MYCONNECT;
@@ -15,16 +15,12 @@ class Dbhelper {
   }
  
 
-  public function GetData(string $table,array $column,array $option,int $page, int $limit,string $orderby){
+  public function GetData(string $table,array $column,array $option,int $page, int $limit,string $orderby,string $req_query_srt=''){
     try {
         if(!$this->tableExists($table)){
           throw new Exception("Table not found.");
         }
-        if($page <= 0){
-          $page = 1;
-        } else{
-          $page = $page;
-        }
+        $page = $page <= 0 ? 1 : $page;
         if(empty($orderby)){
         $order ="id DESC";
         } else {
@@ -60,17 +56,17 @@ class Dbhelper {
         } else {
             $next_ = 0;
         }
-
+        $req_query_srt_ = $req_query_srt==''?'':"&".$req_query_srt;
     if($total_records > $limit){
         $output_n = "<nav aria-label='Page navigation example'>";
         $output_n .= "<ul class='pagination nav justify-content-center'>";
         if($previous <= 0){
             $output_n .="<li class='page-item disabled'><a class='page-link' href='javascript:void(0)'>Previous</a></li>";
         } else {
-            $output_n .="<li class='page-item'><a href='$url?page=$previous' class='page-link' rel='prev'>Previous</a></li>";
+            $output_n .="<li class='page-item'><a href='$url?page=$previous&limit=$limit$req_query_srt_' class='page-link' rel='prev'>Previous</a></li>";
         }
         if ($currentPage > 3) {
-                $output_n .="<li class='page-item'><a class='page-link' href='$url?page=1'>1</a></li>";
+                $output_n .="<li class='page-item'><a class='page-link' href='$url?page=1&limit=$limit$req_query_srt_'>1</a></li>";
             }
             if ($currentPage > 4) {
                 $output_n .="<li class='page-item'><a class='page-link' href='javascript:void(0)'>...</a></li>";
@@ -80,7 +76,7 @@ class Dbhelper {
                 if ($i == $currentPage) {
                 $output_n .="<li class='page-item active'><a class='page-link'>$i</a></li>";
             } else {
-                $output_n .="<li class='page-item'><a class='page-link' href='$url?page=$i'>$i</a></li>";
+                $output_n .="<li class='page-item'><a class='page-link' href='$url?page=$i&limit=$limit$req_query_srt_'>$i</a></li>";
             }
             }
         }
@@ -89,11 +85,11 @@ class Dbhelper {
             }
 
         if ($currentPage < $lastPage - 2) {
-        $output_n .="<li class='page-item'><a class='page-link' href='$url?page=$lastPage'>$lastPage</a></li>";
+        $output_n .="<li class='page-item'><a class='page-link' href='$url?page=$lastPage&limit=$limit$req_query_srt_'>$lastPage</a></li>";
         }
 
         if($next <= $total_page){
-            $output_n .="<li class='page-item'><a class='page-link' href='$url?page=$next' rel='next'>Next</a></li>";
+            $output_n .="<li class='page-item'><a class='page-link' href='$url?page=$next&limit=$limit$req_query_srt_' rel='next'>Next</a></li>";
         } else {
             $output_n .="<li class='page-item disabled'><a class='page-link' href='javascript:void(0)'>Next</a></li>";
         }
@@ -138,7 +134,7 @@ private function tableExists(string $table){
         $sql = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = :db AND table_name = :table";
         $query = $this->CONNECT->prepare($sql);
         $query->execute([
-            ':db'    => $this->dbconfig->DB_NAME,
+            ':db'    => $db_name,
             ':table' => $table
         ]);
         return $query->fetchColumn() <= 0 ? false : true;
@@ -147,9 +143,117 @@ private function tableExists(string $table){
   }
 }
 
+public function Count(string $query){
+  try {
+        // $query = $this->CONNECT->prepare($query);
+        // $query->execute();
+        // return $query->rowCount();
+  
+        $query = $this->CONNECT->prepare($query);
+        $query->execute();
+        $checktotal = $query->fetch(PDO::FETCH_ASSOC);
+        $key = array_key_exists('total', $checktotal) ? 'total' : array_keys($checktotal)[0];
+        return $checktotal[$key];
+  } catch(\Exception $error) {
+    throw new \Exception($error->getMessage());
+  }
+}
 
+public function FetchData(string $query){
+  try {
+        $db_name=$this->dbconfig->DB_NAME;
+        $query = $this->CONNECT->prepare($query);
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+  } catch(\Exception $error) {
+    throw new \Exception($error->getMessage());
+  }
+}
 
+public function Pagination(array $data, int $page=1, int $limit=5, int $total_records=0, string $req_query_srt=''){
+    try {
+        $page = $page <= 0 ? 1 : $page;
+        $url = basename($_SERVER['PHP_SELF']);
+        $previous = $page-1;
+        $next =$page+1;
+        $currentPage = $page;
+         
+        $total_page = ceil($total_records/$limit);
+        $start = ($page - 1)*$limit;
+        $alldata = $data;
 
+        $lastPage = $total_page;
+        $fiestPage = 1;
+        if($next <= $total_page){
+            $next_ = $next;
+        } else {
+            $next_ = 0;
+        }
+        $req_query_srt_ = $req_query_srt==''?'':"&".$req_query_srt;
+        if($total_records > $limit){
+            $output_n = "<nav aria-label='Page navigation example'>";
+            $output_n .= "<ul class='pagination nav justify-content-center'>";
+            if($previous <= 0){
+                $output_n .="<li class='page-item disabled'><a class='page-link' href='javascript:void(0)'>Previous</a></li>";
+            } else {
+                $output_n .="<li class='page-item'><a href='$url?page=$previous&limit=$limit$req_query_srt_' class='page-link' rel='prev'>Previous</a></li>";
+            }
+            if ($currentPage > 3) {
+                    $output_n .="<li class='page-item'><a class='page-link' href='$url?page=1&limit=$limit$req_query_srt_'>1</a></li>";
+                }
+                if ($currentPage > 4) {
+                    $output_n .="<li class='page-item'><a class='page-link' href='javascript:void(0)'>...</a></li>";
+                }
+            foreach (range(1, $lastPage) as $i){
+                if ($i >= $currentPage - 2 && $i <= $currentPage + 2) {
+                    if ($i == $currentPage) {
+                    $output_n .="<li class='page-item active'><a class='page-link'>$i</a></li>";
+                } else {
+                    $output_n .="<li class='page-item'><a class='page-link' href='$url?page=$i&limit=$limit$req_query_srt_'>$i</a></li>";
+                }
+                }
+            }
+            if ($currentPage < $lastPage - 3) {
+                $output_n .="<li class='page-item'><a class='page-link' href='javascript:void(0)'>...</a></li>";
+                }
+
+            if ($currentPage < $lastPage - 2) {
+            $output_n .="<li class='page-item'><a class='page-link' href='$url?page=$lastPage&limit=$limit$req_query_srt_'>$lastPage</a></li>";
+            }
+
+            if($next <= $total_page){
+                $output_n .="<li class='page-item'><a class='page-link' href='$url?page=$next&limit=$limit$req_query_srt_' rel='next'>Next</a></li>";
+            } else {
+                $output_n .="<li class='page-item disabled'><a class='page-link' href='javascript:void(0)'>Next</a></li>";
+            }
+            
+            $output_n .="</ul>";
+            $output_n .="</nav>";  
+
+        } else {
+        
+            $output_n ="";
+        
+        }
+
+        return array(
+            "status"=>1,
+            "message"=>"records found.",
+            "data" => $alldata,
+            "html_view" => $output_n,
+            "active_page" => $page,
+            "total_records" => $total_records,
+            "total_page" => $total_page,
+            "previous" => $previous,
+            "next" => $next_,
+            "first_page"=>$fiestPage,
+            "last_page"=>$lastPage
+        );
+    } catch(Exception $error) {
+        return array("status"=>0,"message"=>$error->getMessage());
+    }
+
+  }
 
 
 public function __destruct(){
