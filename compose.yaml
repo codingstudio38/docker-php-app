@@ -8,6 +8,8 @@ services:
 
     volumes:
       - .:/var/www/html/php-app
+    depends_on:
+      - db
 
     working_dir: /var/www/html/php-app
     container_name: my-php-app 
