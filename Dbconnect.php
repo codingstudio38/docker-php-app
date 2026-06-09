@@ -1,7 +1,7 @@
 <?php 
 /// Only for database collection
 trait DB {
-private $DB_HOST="172.24.32.1";  
+private $DB_HOST="mysql-server";  
 private $DB_NAME="docker_database"; 
 private $DB_USER="root"; 
 private $DB_PASSWORD="12345"; 

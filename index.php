@@ -18,9 +18,9 @@ $myclass = new Dbhelper();
         
         $records = $myclass->FetchData("SELECT * FROM `user_tbl` ORDER BY id desc $limit_");
         $req_query_srt_arr= count($_SERVER['argv']) > 0?explode('&', $_SERVER['argv'][0]):[];
-        $req_query_srt_arr = array_values(array_filter($req_query_srt_arr, function($item){
+        $req_query_srt_arr = array_filter($req_query_srt_arr, function($item){
             return strpos($item, 'page=') !== 0 && strpos($item, 'limit=') !== 0;
-        }));
+        });
         $req_query_srt= count($req_query_srt_arr) > 0 ? implode('&', $req_query_srt_arr) : '';
      
         $pagination = $myclass->Pagination($records, $page, $limit, $total_records, $req_query_srt);

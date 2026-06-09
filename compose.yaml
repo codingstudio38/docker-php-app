@@ -5,26 +5,29 @@ services:
     build:
       context: .
       dockerfile: dockerfile
-
     volumes:
       - .:/var/www/html/php-app
-    depends_on:
-      - db
-
+    # depends_on:
+    #   - db
     working_dir: /var/www/html/php-app
     container_name: my-php-app 
     ports:
       - "80:80"
-  db:
-    # image: mysql:8.0
-    image: mysql:latest
-    container_name: mysql-php-app
-    volumes:
-      - ./db_data:/var/lib/mysql
+    networks:
+      - mysql-db-network
 
-    environment:
-      MYSQL_ROOT_PASSWORD: 12345
-      MYSQL_DATABASE: docker_database
-
-    ports:
-      - "3306:3306"
+#   db:
+#     image: mysql:latest
+#     container_name: mysql-php-app
+#     volumes:
+#       - ./db_data:/var/lib/mysql
+#     environment:
+#       MYSQL_ROOT_PASSWORD: 12345
+#       MYSQL_DATABASE: docker_database
+#     ports:
+#       - "3306:3306"
+# volumes:
+#   db_data:
+networks:
+  mysql-db-network:
+    external: true
