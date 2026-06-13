@@ -1,5 +1,5 @@
 FROM php:8.1.5-apache
-
+# FROM php:8.1.5-apache as php-app
 WORKDIR /var/www/html/php-app
 
 COPY . .
